@@ -1,9 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'http_util.dart';
-import 'search_result.dart';
 import 'search_provider.dart';
-import 'search_item.dart';
 import 'search_result_widget.dart';
 import 'global_config.dart';
 
@@ -16,16 +12,25 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  List<SearchResultWidget> tabViews = [
-    new SearchResultWidget(new CilimaoProvider()),
-    new SearchResultWidget(new CilimaoProvider()),
-  ];
+  Map<String, SearchProvider> _providers = {
+    "磁力猫" : new CilimaoProvider(),
+    "mao" : new CilimaoProvider(),
+  };
+  String _currentProvider = "磁力猫";
+  String _keyword;
 
-  bool firstLoad = true;
-  bool searching = false;
+  SearchResultWidget _searchResultWidget = new SearchResultWidget();
 
   void _search(String text) {
-    tabViews[0].getResult(text);
+    _keyword = text;
+    _searchResultWidget.getResult(_providers[_currentProvider], text);
+  }
+
+  void _changeProvider(String providerName) {
+    setState(() {
+      _currentProvider = providerName;
+    });
+    _searchResultWidget.getResult(_providers[_currentProvider], _keyword);
   }
 
   @override
@@ -34,24 +39,14 @@ class _MainPageState extends State<MainPage> {
         length: 3,
         child: new Scaffold(
           appBar: new AppBar(
-            title: _buildSearchInput(),
-            bottom: new TabBar(
-              labelColor: GlobalConfig.dark == true ? new Color(0xFF63FDD9) : Colors.blue,
-              unselectedLabelColor: GlobalConfig.dark == true ? Colors.white : Colors.black,
-              tabs: [
-                new Tab(text: "磁力猫"),
-                new Tab(text: "BTSOW"),
-              ],
-            ),
+            title: _buildSearchBar(),
           ),
-          body: new TabBarView(
-              children: tabViews
-          ),
+          body: _searchResultWidget
         )
     );
   }
 
-  Widget _buildSearchInput() {
+  Widget _buildSearchBar() {
     Widget searchIcon = new Container(
       child: new Icon(Icons.search, color: GlobalConfig.fontColor, size: 18.0),
       width: 30.0,
@@ -66,17 +61,46 @@ class _MainPageState extends State<MainPage> {
       ),
     );
 
+    Widget split = new Container(
+      decoration: new BoxDecoration(
+          border: new BorderDirectional(
+              start: new BorderSide(color: GlobalConfig.fontColor, width: 1.0)
+          )
+      ),
+      width: 1.0,
+      height: 20.0
+    );
+
+    Widget changeProviderBtn = new Container(
+      child: new PopupMenuButton(
+        onSelected: _changeProvider,
+        child: new Text(
+          _currentProvider,
+          style: new TextStyle(color: GlobalConfig.fontColor, fontSize: 14.0),
+        ),
+        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+          const PopupMenuItem<String>(value: '磁力猫', child: Text('磁力猫')),
+          const PopupMenuItem<String>(value: 'mao', child: Text('mao')),
+        ]
+      ),
+      height: 20.0,
+      margin: EdgeInsets.only(left: 10.0, right: 10.0)
+    );
+
     return new Container(
       child: new Row(
         children: <Widget>[
           searchIcon,
-          new Expanded(child: searchTextField)
+          new Expanded(child: searchTextField),
+          split,
+          changeProviderBtn
         ],
       ),
       decoration: new BoxDecoration(
-          borderRadius: const BorderRadius.all(const Radius.circular(4.0)),
-          color: GlobalConfig.searchBackgroundColor
+        borderRadius: const BorderRadius.all(const Radius.circular(4.0)),
+        color: GlobalConfig.searchBackgroundColor
       ),
+      height: 35.0,
     );
   }
 }

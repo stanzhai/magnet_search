@@ -6,12 +6,11 @@ import 'search_item_widget.dart';
 import 'global_config.dart';
 
 class SearchResultWidget extends StatefulWidget {
-  final SearchProvider searchProvider;
+  SearchProvider searchProvider;
   final _SearchResultState state = new _SearchResultState();
 
-  SearchResultWidget(this.searchProvider);
-
-  void getResult(String keyword) {
+  void getResult(SearchProvider provider, String keyword) {
+    this.searchProvider = provider;
     state.search(keyword);
   }
 
@@ -35,7 +34,7 @@ class _SearchResultState extends State<SearchResultWidget> {
     _firstLoad = false;
     _searching = true;
     items.clear();
-    setState(() {});
+    setState((){});
 
     widget.searchProvider.getResource(keyword, 0, (SearchResult result) {
       _searching = false;
